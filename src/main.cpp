@@ -110,17 +110,15 @@ void display() {
 
     // Set modelview and camera
     camera.update(0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
 
     mapChunk.render();
     // gluLookAt(cameraX, cameraY, cameraZ,   // eye
     //           0.0, 0.0, 0.0,   // center
     //           0.0, 1.0, 0.0);  // up
     
-              glLineWidth (2.0);
-
-
+    glLineWidth (2.0);
     glBegin (GL_LINES);
       glColor3f (1,0,0);   // X axis is red.
       glVertex3fv (ORG);
@@ -156,7 +154,7 @@ int main (int ArgCount, char **Args)
 
   init();
 
-  mapChunk.setCamera(camera2);
+  mapChunk.setCamera(camera);
   mapChunk.setScreen(WinWidth, WinHeight);
   mapChunk.generate();
 
@@ -190,20 +188,24 @@ int main (int ArgCount, char **Args)
             }
             break;
           case 'z':
-            camera.move(0,0,-cameraSpeed);
-            camera2.ProcessKeyboard(FORWARD, deltaTime);
+            // camera.move(0,0,-cameraSpeed);
+            camera.move(FORWARD, deltaTime);
+            camera2.ProcessKeyboard(FORWARD2, deltaTime);
             break;
           case 's':
-            camera.move(0,0,cameraSpeed);
-            camera2.ProcessKeyboard(BACKWARD, deltaTime);
+            camera.move(BACKWARD, deltaTime);
             break;
           case 'q':
-            camera.move(-cameraSpeed,0,0);
-            camera2.ProcessKeyboard(LEFT, deltaTime);
+            camera.move(LEFT, deltaTime);
             break;
           case 'd':
-            camera.move(cameraSpeed,0,0);
-            camera2.ProcessKeyboard(RIGHT, deltaTime);
+            camera.move(RIGHT, deltaTime);
+            break;
+          case 'e':
+            camera.move(UP, deltaTime);
+            break;
+          case 'a':
+            camera.move(DOWN, deltaTime);
             break;
           default:
             break;
@@ -223,7 +225,8 @@ int main (int ArgCount, char **Args)
 
         if (MouseMotion) {
           MouseMotion = false;
-          camera2.ProcessMouseMovement(MouseRelX, MouseRelY);
+          camera.moveMouse(MouseRelX, MouseRelY);
+          // camera2.ProcessMouseMovement(MouseRelX, MouseRelY);
           // CameraYaw += MouseRelX * MouseSense;
           // CameraPitch += MouseRelY * MouseSense;
 

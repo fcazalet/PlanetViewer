@@ -5,6 +5,7 @@
 #include "stb/stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 MapChunk::MapChunk(){
@@ -15,12 +16,12 @@ void MapChunk::setScreen(float width, float height){
     this->screenHeight = height;
 }
 
-void MapChunk::setCamera(Camera2 camera) {
+void MapChunk::setCamera(Camera camera) {
     this->camera = camera;
 }
 
 void MapChunk::generate(){
-    heightMapShader = Shader("assets/vertex_shader.vs","assets/fragement_shader.fs");
+    heightMapShader = Shader("../assets/vertex_shader.vs","../assets/fragment_shader.fs");
     // load height map texture
     int width, height, nChannels;
 
@@ -91,15 +92,18 @@ void MapChunk::render(){
     // be sure to activate shader when setting uniforms/drawing objects
     heightMapShader.use();
 
-    // view/projection transformations
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100000.0f);
-    glm::mat4 view = camera.GetViewMatrix();
-    heightMapShader.setMat4("projection", projection);
-    heightMapShader.setMat4("view", view);
+    glm::mat4 view = glm::lookAt(camera.Position, camera.Front, camera.Up);
+    glUniformMatrix4fv(7, 1, GL_FALSE, glm::value_ptr(view));
 
-    // world transformation
-    glm::mat4 model = glm::mat4(1.0f);
-    heightMapShader.setMat4("model", model);
+    // view/projection transformations
+    // glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100000.0f);
+    // glm::mat4 view = camera.GetViewMatrix();
+    // heightMapShader.setMat4("projection", projection);
+    // heightMapShader.setMat4("view", view);
+
+    // // world transformation
+    // glm::mat4 model = glm::mat4(1.0f);
+    // heightMapShader.setMat4("model", model);
 
     // draw mesh
     glBindVertexArray(terrainVAO);

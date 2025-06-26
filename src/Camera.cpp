@@ -3,23 +3,64 @@
 #include <GL/glu.h>
 
 Camera::Camera(){
-    cameraX = 67.0f;
-    cameraY = 627.5f;
-    cameraZ = 169.9f;
-    // 0.0f, 1.0f, 0.0f),
-    //           -128.1f, -42.4f
+    Position = glm::vec3(0, 0, 0);
+    WorldUp = glm::vec3(0, 1, 0);
+    Yaw = -90.0f;;
+    Pitch = 0.0f;
+    MovementSpeed = 100;
+    MouseSensitivity = 1;
+    Zoom = 1;
+    updateCameraVectors();
 }
 
-void Camera::move(float x, float y, float z){
-    this->cameraX += x;
-    this->cameraY += y;
-    this->cameraZ += z;
+void Camera::move(Camera_Movement direction, float deltaTime){
+        float velocity = MovementSpeed * deltaTime;
+        if (direction == FORWARD)
+            Position += Front * velocity;
+        if (direction == BACKWARD)
+            Position -= Front * velocity;
+        if (direction == LEFT)
+            Position -= Right * velocity;
+        if (direction == RIGHT)
+            Position += Right * velocity;
+        if (direction == UP)
+            Position += Up * velocity;
+        if (direction == DOWN)
+            Position -= Up * velocity;
 }
+
+void Camera::moveMouse(float xoffset, float yoffset, bool constrainPitch)
+    {
+        xoffset *= MouseSensitivity;
+        yoffset *= MouseSensitivity;
+
+        Yaw   += xoffset;
+        Pitch += yoffset;
+
+        // make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (constrainPitch)
+        {
+            if (Pitch > 89.0f)
+                Pitch = 89.0f;
+            if (Pitch < -89.0f)
+                Pitch = -89.0f;
+        }
+
+        // update Front, Right and Up Vectors using the updated Euler angles
+        updateCameraVectors();
+    }
 
 void Camera::update(float delta){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(cameraX, cameraY, cameraZ,   // eye
-              0.0, 0.0, 0.0,   // center
-              0.0, 1.0, 0.0);  // up
+    glm::vec3 CenterPoint = Position + Front;
+    gluLookAt(Position.x, Position.y, Position.z,   // eye
+              CenterPoint.x, CenterPoint.y, CenterPoint.z,   // center
+              Up.x, Up.y, Up.z);  // up
+}
+
+
+glm::mat4 Camera::GetViewMatrix()
+{
+    return glm::lookAt(Position, Position + Front, Up);
 }

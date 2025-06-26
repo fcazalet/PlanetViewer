@@ -5,7 +5,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 // #include "include/stb/stb_image_write.h"
-#include "Camera2.h"
+#include "Camera.h"
 #include "ShaderM.h"
 
 class MapChunk {
@@ -13,7 +13,7 @@ private:
     float positionX = 0.0;
     float positionY = 0.0;
     float positionZ = 0.0;
-    Camera2 camera;
+    Camera camera;
     float screenWidth, screenHeight;
     int numStrips;
     int numVertPerStrip;
@@ -24,7 +24,7 @@ public:
 
     void setScreen(float width, float height);
 
-    void setCamera(Camera2 camera);
+    void setCamera(Camera camera);
     
     void generate();
 
