@@ -1,15 +1,19 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdint.h>
+#include <time.h>
 #include <vector>
 #include <string>
+#include <GL/glew.h>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #define GLEW_STATIC
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "MapChunk.h"
 #include "Camera.h"
+#include "Camera2.h"
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -68,13 +72,23 @@ typedef int32_t b32;
 #define WinHeight 600
 
 Camera camera = Camera();
-float cameraSpeed = 0.01;
-// float cameraX = 0.0;
-// float cameraY = 0.0;
-// float cameraZ = 2.0;
+Camera2 camera2(glm::vec3(67.0f, 627.5f, 169.9f),
+              glm::vec3(0.0f, 1.0f, 0.0f),
+              -128.1f, -42.4f);
+float cameraSpeed = 10;
+bool Mousefirst  = true;
+bool MouseMotion = false;
+MapChunk  mapChunk = MapChunk();
+
+// timing
+float deltaTime = 0.0f;
+Uint32 lastFrame = SDL_GetTicks();
 
 // Initialize OpenGL state
 void init() {
+
+    // glewExperimental = GL_TRUE; 
+    glewInit();
     glEnable(GL_DEPTH_TEST);  // Enable depth testing
     glClearColor(0.1, 0.1, 0.1, 1.0); // Background color
 
@@ -96,12 +110,14 @@ void display() {
 
     // Set modelview and camera
     camera.update(0);
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    mapChunk.render();
     // gluLookAt(cameraX, cameraY, cameraZ,   // eye
     //           0.0, 0.0, 0.0,   // center
     //           0.0, 1.0, 0.0);  // up
-
+    
               glLineWidth (2.0);
 
 
@@ -132,6 +148,7 @@ int main (int ArgCount, char **Args)
   u32 WindowFlags = SDL_WINDOW_OPENGL;
   SDL_Window *Window = SDL_CreateWindow("OpenGL Test", 100, 100, WinWidth, WinHeight, WindowFlags);
   SDL_GLContext Context = SDL_GL_CreateContext(Window);
+  SDL_SetRelativeMouseMode(SDL_TRUE);
   
   b32 Running = 1;
   b32 FullScreen = 0;
@@ -139,8 +156,18 @@ int main (int ArgCount, char **Args)
 
   init();
 
+  mapChunk.setCamera(camera2);
+  mapChunk.setScreen(WinWidth, WinHeight);
+  mapChunk.generate();
+
   while (Running)
   {
+    time_t seconds = time (NULL);
+    Uint32 currentFrame = SDL_GetTicks();
+    deltaTime = (currentFrame - lastFrame) / 1000.0f;
+    lastFrame = currentFrame;
+    // printf("FPS: %f", 1.0/deltaTime);
+
     SDL_Event Event;
     while (SDL_PollEvent(&Event))
     {
@@ -164,20 +191,47 @@ int main (int ArgCount, char **Args)
             break;
           case 'z':
             camera.move(0,0,-cameraSpeed);
+            camera2.ProcessKeyboard(FORWARD, deltaTime);
             break;
           case 's':
             camera.move(0,0,cameraSpeed);
+            camera2.ProcessKeyboard(BACKWARD, deltaTime);
             break;
           case 'q':
             camera.move(-cameraSpeed,0,0);
+            camera2.ProcessKeyboard(LEFT, deltaTime);
             break;
           case 'd':
             camera.move(cameraSpeed,0,0);
+            camera2.ProcessKeyboard(RIGHT, deltaTime);
             break;
           default:
             break;
         }
       }
+      else if (Event.type == SDL_MOUSEMOTION) {
+        MouseMotion = true;
+        int MouseRelX, MouseRelY;
+        if (!Mousefirst) {
+          MouseRelX = Event.motion.xrel;
+          MouseRelY = Event.motion.yrel;
+        } else {
+          Mousefirst = false;
+          MouseRelX = 0;
+          MouseRelY = 0;
+        }
+
+        if (MouseMotion) {
+          MouseMotion = false;
+          camera2.ProcessMouseMovement(MouseRelX, MouseRelY);
+          // CameraYaw += MouseRelX * MouseSense;
+          // CameraPitch += MouseRelY * MouseSense;
+
+          // Stuff to limit the camera angles ...
+
+          // Stuff to create the camera viewing matrix ...
+        }
+      }           
       else if (Event.type == SDL_QUIT)
       {
         Running = 0;
@@ -189,5 +243,7 @@ int main (int ArgCount, char **Args)
 
     SDL_GL_SwapWindow(Window);
   }
+
+  mapChunk.destroy();
   return 0;
 }

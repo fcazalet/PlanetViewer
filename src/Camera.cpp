@@ -1,7 +1,13 @@
 #include "Camera.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 Camera::Camera(){
-
+    cameraX = 67.0f;
+    cameraY = 627.5f;
+    cameraZ = 169.9f;
+    // 0.0f, 1.0f, 0.0f),
+    //           -128.1f, -42.4f
 }
 
 void Camera::move(float x, float y, float z){
