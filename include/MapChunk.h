@@ -13,7 +13,7 @@ private:
     float positionX = 0.0;
     float positionY = 0.0;
     float positionZ = 0.0;
-    Camera camera;
+    Camera* camera;
     float screenWidth, screenHeight;
     int numStrips;
     int numVertPerStrip;
@@ -24,7 +24,7 @@ public:
 
     void setScreen(float width, float height);
 
-    void setCamera(Camera camera);
+    void setCamera(Camera* camera);
     
     void generate();
 

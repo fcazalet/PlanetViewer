@@ -20,49 +20,11 @@ const int SCREEN_HEIGHT = 480;
 
 using namespace std;
 
-static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
-};
 
-    float ORG[3] = {0,0,0};
-    float XP[3] = {1,0,0}, XN[3] = {-1,0,0},
-YP[3] = {0,1,0}, YN[3] = {0,-1,0},
-ZP[3] = {0,0,1}, ZN[3] = {0,0,-1};
+float ORG[3] = {0,0,0};
+float XP[3] = {1,0,0}, XN[3] = {-1,0,0},
+  YP[3] = {0,1,0}, YN[3] = {0,-1,0},
+  ZP[3] = {0,0,1}, ZN[3] = {0,0,-1};
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -71,14 +33,14 @@ typedef int32_t b32;
 #define WinWidth 800
 #define WinHeight 600
 
-Camera camera = Camera();
+Camera* camera;
 Camera2 camera2(glm::vec3(67.0f, 627.5f, 169.9f),
               glm::vec3(0.0f, 1.0f, 0.0f),
               -128.1f, -42.4f);
 float cameraSpeed = 10;
 bool Mousefirst  = true;
 bool MouseMotion = false;
-MapChunk  mapChunk = MapChunk();
+MapChunk mapChunk;
 
 // timing
 float deltaTime = 0.0f;
@@ -95,7 +57,11 @@ void init() {
     // Init perspective
 		glMatrixMode( GL_PROJECTION );
 		glLoadIdentity();
-		gluPerspective(80,(double)WinWidth/WinHeight,1,1000);
+    camera->fovy = 80;
+    camera->aspect = (double)WinWidth/WinHeight;
+    camera->zNear = 1;
+    camera->zFar = 1000;
+		gluPerspective(camera->fovy,camera->aspect,camera->zNear,camera->zFar);
     glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);
 }
@@ -103,20 +69,8 @@ void init() {
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set projection
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-    // gluPerspective(90,(double)WinWidth/WinHeight,1,1000);
-
-    // Set modelview and camera
-    camera.update(0);
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
-
+    camera->update(0);
     mapChunk.render();
-    // gluLookAt(cameraX, cameraY, cameraZ,   // eye
-    //           0.0, 0.0, 0.0,   // center
-    //           0.0, 1.0, 0.0);  // up
     
     glLineWidth (2.0);
     glBegin (GL_LINES);
@@ -137,8 +91,6 @@ void display() {
         glColor3f(0.0, 1.0, 0.0); glVertex3f(-1.0, -1.0, 0.0);
         glColor3f(0.0, 0.0, 1.0); glVertex3f( 1.0, -1.0, 0.0);
     glEnd();
-
-    // glutSwapBuffers();
 }
 
 int main (int ArgCount, char **Args)
@@ -151,6 +103,8 @@ int main (int ArgCount, char **Args)
   b32 Running = 1;
   b32 FullScreen = 0;
   float z = 0.0;
+
+  camera = new Camera();
 
   init();
 
@@ -189,23 +143,23 @@ int main (int ArgCount, char **Args)
             break;
           case 'z':
             // camera.move(0,0,-cameraSpeed);
-            camera.move(FORWARD, deltaTime);
+            camera->move(FORWARD, deltaTime);
             camera2.ProcessKeyboard(FORWARD2, deltaTime);
             break;
           case 's':
-            camera.move(BACKWARD, deltaTime);
+            camera->move(BACKWARD, deltaTime);
             break;
           case 'q':
-            camera.move(LEFT, deltaTime);
+            camera->move(LEFT, deltaTime);
             break;
           case 'd':
-            camera.move(RIGHT, deltaTime);
+            camera->move(RIGHT, deltaTime);
             break;
           case 'e':
-            camera.move(UP, deltaTime);
+            camera->move(UP, deltaTime);
             break;
           case 'a':
-            camera.move(DOWN, deltaTime);
+            camera->move(DOWN, deltaTime);
             break;
           default:
             break;
@@ -225,14 +179,7 @@ int main (int ArgCount, char **Args)
 
         if (MouseMotion) {
           MouseMotion = false;
-          camera.moveMouse(MouseRelX, MouseRelY);
-          // camera2.ProcessMouseMovement(MouseRelX, MouseRelY);
-          // CameraYaw += MouseRelX * MouseSense;
-          // CameraPitch += MouseRelY * MouseSense;
-
-          // Stuff to limit the camera angles ...
-
-          // Stuff to create the camera viewing matrix ...
+          camera->moveMouse(MouseRelX, MouseRelY);
         }
       }           
       else if (Event.type == SDL_QUIT)

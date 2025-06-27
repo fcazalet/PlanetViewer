@@ -16,7 +16,7 @@ void MapChunk::setScreen(float width, float height){
     this->screenHeight = height;
 }
 
-void MapChunk::setCamera(Camera camera) {
+void MapChunk::setCamera(Camera* camera) {
     this->camera = camera;
 }
 
@@ -25,13 +25,16 @@ void MapChunk::generate(){
     // load height map texture
     int width, height, nChannels;
 
-
-    unsigned char* data = stbi_load("../assets/iceland_heightmap.png",
-                                    &width, &height, &nChannels,
-                                    0);
+    stbi_set_flip_vertically_on_load(true); // WIthout this, image is reversed
+    // unsigned char* data = stbi_load("../assets/iceland_heightmap.png",
+    //                                 &width, &height, &nChannels,
+    //                                 0);
+    unsigned char* data = stbi_load("../assets/europe_heightmap.png",
+                                &width, &height, &nChannels,
+                                0);
     // vertex generation
     std::vector<float> vertices;
-    float yScale = 64.0f / 256.0f, yShift = 16.0f;  // apply a scale+shift to the height data
+    float yScale = 32.0f / 256.0f, yShift = 16.0f;  // apply a scale+shift to the height data
     for(unsigned int i = 0; i < height; i++)
     {
         for(unsigned int j = 0; j < width; j++)
@@ -92,18 +95,11 @@ void MapChunk::render(){
     // be sure to activate shader when setting uniforms/drawing objects
     heightMapShader.use();
 
-    glm::mat4 view = glm::lookAt(camera.Position, camera.Front, camera.Up);
-    glUniformMatrix4fv(7, 1, GL_FALSE, glm::value_ptr(view));
-
-    // view/projection transformations
-    // glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100000.0f);
-    // glm::mat4 view = camera.GetViewMatrix();
-    // heightMapShader.setMat4("projection", projection);
-    // heightMapShader.setMat4("view", view);
-
-    // // world transformation
-    // glm::mat4 model = glm::mat4(1.0f);
-    // heightMapShader.setMat4("model", model);
+    glm::mat4 viewMatrix = camera->GetViewMatrix();
+    glm::mat4 projection = camera->getPerspective();
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 mvp = projection * viewMatrix * model;
+    heightMapShader.setMat4("uMVP", mvp);
 
     // draw mesh
     glBindVertexArray(terrainVAO);
@@ -117,14 +113,6 @@ void MapChunk::render(){
                                 * numVertPerStrip
                                 * strip)); // offset to starting index
     }
-    // for(unsigned int strip = 0; strip < numStrips; ++strip)
-    // {
-    //     glBegin(GL_TRIANGLES);
-    //         glColor3f(1.0, 0.0, 0.0); glVertex3f( 0.0,  1.0, 0.0);
-    //         glColor3f(0.0, 1.0, 0.0); glVertex3f(-1.0, -1.0, 0.0);
-    //         glColor3f(0.0, 0.0, 1.0); glVertex3f( 1.0, -1.0, 0.0);
-    //     glEnd();
-    // }
 }
 
 void MapChunk::destroy(){

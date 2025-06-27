@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -27,6 +28,8 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
+    // Perspective
+    float fovy, aspect, zNear, zFar;
 
     Camera(); // constructor declaration
 
@@ -38,6 +41,7 @@ public:
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
+    glm::mat4 getPerspective();
 
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
@@ -52,5 +56,10 @@ private:
         // also re-calculate the Right and Up vector
         Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up    = glm::normalize(glm::cross(Right, Front));
+    }
+
+    
+    void debugPosition(){
+        printf("Position : (%f , %f, %f)\n", Position.x, Position.y, Position.z);
     }
 };
