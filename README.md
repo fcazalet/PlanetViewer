@@ -4,6 +4,22 @@
 
 Inspired from https://learnopengl.com/Guest-Articles/2021/Tessellation/Height-map
 
+## Dependencies
+
+ - SDL2
+ - OpenGL, Glu
+ - GLew
+ - Glm
+
+ Install using MSYS22
+
+ ```
+ pacman -S mingw-w64-x86_64-toolchain
+ pacman -S mingw-w64-ucrt-x86_64-SDL2
+ pacman -S mingw-w64-ucrt-x86_64-glew
+ pacman -S mingw-w64-ucrt-x86_64-glm
+ ```
+
 ## Run
 
 Commands line to run it:
